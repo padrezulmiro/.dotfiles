@@ -38,7 +38,7 @@ show_milliseconds = false
 disabled = false
 style = "bold italic red"
 
-[C]
+[c]
 symbol = "󰙱 "
 
 [aws]
