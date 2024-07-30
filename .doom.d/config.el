@@ -28,8 +28,6 @@
 (setq doom-font (font-spec :family "FiraCode Nerd Font Mono" :size 15))
 
 
-
-
 ;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
 ;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
 ;; refresh your font settings. If Emacs still can't find your font, it likely
@@ -48,7 +46,6 @@
 (setq doom-everforest-light-background  "soft") ; or hard (defaults to soft)
 
 ;; set `doom-theme'
-(setq doom-theme 'doom-everforest-light) ; light variant
 (setq doom-theme 'doom-everforest) ; dark variant
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
@@ -93,16 +90,13 @@
 ;; they are implemented.
 
 
-
 ;; Add load-paths for custom packages and modules
 ;; (load-path wasn't updated for a few modules)
 
 (add-load-path! "../.emacs.d/.local/straight/build-28.2/minimap")
 
-
 ;; Display ruler at column 80
 (global-display-fill-column-indicator-mode)
-
 
 ;; Save recent files to recentf each time a buffer is loaded from a file
 (add-hook 'find-file-hook 'recentf-save-list)
@@ -111,4 +105,17 @@
 (setq which-key-allow-imprecise-window-fit nil)
 
 ;; Decrease undo's amalgamation
-(setq amalgamating-undo-limit 10)
+(setq amalgamating-undo-limit 1)
+
+;; Configure evil-escape
+(setq evil-escape-key-sequence "fj")
+(setq evil-escape-delay 0.20)
+
+;; TODO(azul) add hook to make sure 'doom-theme' is reset after 'load-theme' is called
+
+;; TODO(azul) add trigger to change theme depending on hour of the day
+
+;; TODO(azul) turn off a few minor modes like highlight-numbers in buffers with LSP
+;; mode turned on
+
+;; TODO add for..of snippet to typescript and javascript language servers
