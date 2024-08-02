@@ -40,10 +40,10 @@
 ;; (setq doom-theme 'doom-gruvbox)
 
 ;; `gruvbox-material' contrast and palette options
-(setq doom-everforest-background  "soft")  ; or hard (defaults to soft)
+(setq doom-everforest-background "soft")  ; or hard (defaults to soft)
 
 ;; `gruvbox-material-light' contrast and palette options
-(setq doom-everforest-light-background  "soft") ; or hard (defaults to soft)
+(setq doom-everforest-light-background "soft") ; or hard (defaults to soft)
 
 ;; set `doom-theme'
 (setq doom-theme 'doom-everforest) ; dark variant
@@ -111,7 +111,17 @@
 (setq evil-escape-key-sequence "fj")
 (setq evil-escape-delay 0.20)
 
-;; TODO(azul) add hook to make sure 'doom-theme' is reset after 'load-theme' is called
+;; Make sure 'doom-theme' is reset after 'consult-theme' is called
+;; when selecting an already loaded theme
+(defadvice! azlcfg--set-doom-theme-after-consult-a (theme)
+  "Sets `doom-theme' to THEME regardless of `consult-theme' implementation.
+Currently, `doom-theme' isn't updated when selecting an already loaded
+theme.
+
+This fix is based on
+https://github.com/doomemacs/doomemacs/issues/7511#issuecomment-1869710558"
+  :after #'consult-theme
+  (setq doom-theme theme))
 
 ;; TODO(azul) add trigger to change theme depending on hour of the day
 
