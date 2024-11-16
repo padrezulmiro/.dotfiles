@@ -25,7 +25,7 @@
 ;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
 ;;
 
-(setq doom-font (font-spec :family "FiraCode Nerd Font Mono" :size 15))
+(setq doom-font (font-spec :family "FiraCode Nerd Font Mono" :size 16))
 
 
 ;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
