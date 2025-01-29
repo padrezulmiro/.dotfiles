@@ -12,6 +12,8 @@
 # [] fd
 # [] doom-emacs
 # [] zellij
+# [] neovim
+# [] some neovim starter
 # [] htop
 
 import click
@@ -145,7 +147,8 @@ def aptget_install(pkg: str):
 
 def dpkg_is_pkg_installed(pkg: str) -> bool:
     """Confirm whether pkg is installed using Debian's dpkg"""
-    command = ["dpkg-query", "-f", "'${db:Status-Want}\n'", "-W", pkg]
+    command_list = ["dpkg-query", "-f", "'${db:Status-Want}\n'", "-W", pkg]
+    command = " ".join(command_list)
     output = pexpect.run(command, encoding="utf-8")
 
     is_installed = "install" in output
@@ -164,6 +167,7 @@ def ubuntu_install_programs(log_level: int):
     #                "with sudo.")
     #     sys.exit(1)
 
+    global logger
     logger = init_logger(log_level)
     logger.info("START: Starting instalation on Ubuntu")
     log_and_echo(logging.INFO, "Installing utilities...")
@@ -193,6 +197,7 @@ def main():
     "--log-level",
     default="critical",
     show_default=True,
+    help="Set the log level of the installer.",
     type=click.Choice(
         ["debug", "info", "warning", "error", "critical"],
         case_sensitive=False
