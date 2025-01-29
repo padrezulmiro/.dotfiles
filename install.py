@@ -4,48 +4,65 @@
 # 1. Add a dry run option
 # 2. Check for click's installation
 
+# TODO(azul) Package wishlist:
+# [] zsh
+# [] oh-my-zsh
+# [] emacs
+# [] starship
+# [] fd
+# [] doom-emacs
+# [] zellij
+# [] htop
+
 import click
 import subprocess
 import pexpect
 import logging
 from typing import int
 
-esc_code = "\033["
-del_line_code = esc_code + "2K"
-cursor_up_code = esc_code + "A"
-cursor_down_code = esc_code + "B"
+ESC_CODE = "\033["
+DEL_LINE_CODE = ESC_CODE + "2K"
+CURSOR_UP_CODE = ESC_CODE + "A"
+CURSOR_DOWN_CODE = ESC_CODE + "B"
 
-log_file = "install.log"
+LOG_FILE = "install.log"
 
+logger: logging.Logger = None
+
+aptget_packages = [
+    "zsh",
+    # "oh-my-zsh",
+    # "emacs",
+]
 
 # ****************** CONSOLE ESCAPE CODE HELPERS ******************************
 
 
 def del_line_at_cursor() -> None:
     """Delete line at console's cursor"""
-    click.echo(del_line_code, nl=False)
+    click.echo(DEL_LINE_CODE, nl=False)
 
 
 def move_cursor_up(num_lines: int = 1) -> None:
     """Move cursor num_lines up."""
     if num_lines == 1:
-        click.echo(cursor_up_code, nl=False)
+        click.echo(CURSOR_UP_CODE, nl=False)
     elif num_lines > 1:
-        code = esc_code + str(num_lines) + "A"
+        code = ESC_CODE + str(num_lines) + "A"
         click.echo(code, nl=False)
 
 
 def move_cursor_down(num_lines: int = 1) -> None:
-    """TODO"""
+    """Move cursor num_lines down."""
     if num_lines == 1:
-        click.echo(cursor_down_code, nl=False)
+        click.echo(CURSOR_DOWN_CODE, nl=False)
     elif num_lines > 1:
-        code = esc_code + str(num_lines) + "B"
+        code = ESC_CODE + str(num_lines) + "B"
         click.echo(code, nl=False)
 
 
 def del_lines_above(n_lines: int = 0) -> None:
-    """TODO"""
+    """Delete n_lines above the cursor's line, including the current line"""
     if n_lines >= 0:
         del_line_at_cursor()
     if n_lines > 0:
@@ -58,11 +75,12 @@ def del_lines_above(n_lines: int = 0) -> None:
 
 
 def init_logger(log_level: int = logging.INFO) -> logging.Logger:
-    """TODO"""
+    """Init logger with log_level level of debugging and with specified
+    formatting"""
     logger = logging.getLogger(__name__)
     logger.setLevel(log_level)
 
-    handler = logging.FileHandler(log_file, encoding="utf-8")
+    handler = logging.FileHandler(LOG_FILE, encoding="utf-8")
     handler.setLevel(log_level)
 
     formatter = logging.Formatter(
@@ -76,7 +94,8 @@ def init_logger(log_level: int = logging.INFO) -> logging.Logger:
     return logger
 
 
-def log_and_echo(logger: logging.Logger, log_level: int, message: str) -> None:
+def log_and_echo(log_level: int, message: str) -> None:
+    """Log message with a given log level and echo it via click.echo"""
     logger.log(log_level, message)
     click.echo(message)
 
@@ -93,26 +112,52 @@ def grep(grep_input: str, search_token: str) -> str:
 
 
 def aptget_install(pkg: str):
-    """Run an apt-get process to install pkg"""
-    child = pexpect.spawn()
-    pass
+    """Run an apt-get process to install pkg interactively"""
+    logger.info("Installing {}".format(pkg))
+
+    command = "apt-get install " + pkg
+    child = pexpect.spawn(command, encoding="utf-8")
+
+    n_lines = 0
+    expect_patterns = [
+        "\n",
+        "Do you want to continue? \\[Y/n\\]",
+        pexpect.EOF
+    ]
+    expect_ret = child.expect(expect_patterns)
+
+    # TODO(azul) Doesn't handle abrupt termination, like in case the user
+    # replies n to the prompt to install
+    while expect_ret != 2:
+        line = "  " + child.before
+        if expect_ret == 0:
+            click.echo(line)
+        if expect_ret == 1:
+            click.echo(line, nl=False)
+            child.interact(escape_character="\r")
+            child.send("\n")
+
+        # FIXME(azul) This should omit the reply sent by the user: y or n
+        logger.info("apt-get output: {}".format(child.before))
+        n_lines += 1
+        expect_ret = child.expect(expect_patterns)
 
 
 def dpkg_is_pkg_installed(pkg: str) -> bool:
     """Confirm whether pkg is installed using Debian's dpkg"""
-    res = subprocess.run(
-        ["dpkg-query", "-W", pkg],
-        capture_output=True,
-        text=True
-    )
-    is_installed = len(res.stdout) != 0
+    # TODO(azul) this is not enough to ensure the pkg is NOT installed
+    # we should use "dpkg-query -l pkg" and parse it
+    command = ["dpkg-query", "-f", "'${db:Status-Want}\n'", "-W", pkg]
+    output = pexpect.run(command, encoding="utf-8")
+
+    is_installed = "install" in output
     return is_installed
 
 
 # ****************** INSTALLERS ***********************************************
 
 
-def ubuntu_install_programs():
+def ubuntu_install_programs(log_level: int):
     """TODO"""
 
     # Confirm root access privileges
@@ -121,22 +166,16 @@ def ubuntu_install_programs():
     #                "with sudo.")
     #     sys.exit(1)
 
-    click.echo("Installing utilities...")
+    logger = init_logger(log_level)
+    logger.info("START: Starting instalation on Ubuntu")
+    log_and_echo(logging.INFO, "Installing utilities...")
 
-    # TODO(azul) Install zsh
-    is_zsh_installed = dpkg_is_pkg_installed("zsh")
-    if is_zsh_installed:
-        click.echo("zsh is already installed!")
-    else:
-        click.echo("zsh is not installed!")
-
-    # XXX(azul) Testing installation
-
-    # TODO(azul) Install oh-my-zsh
-
-    # TODO(azul) Install emacs
-
-    # TODO(azul) Install doom-emacs
+    for pkg in aptget_packages:
+        if dpkg_is_pkg_installed(pkg):
+            click.echo("{} is already installed!".format(pkg))
+            logger.info("{} is already installed, skipping it".format(pkg))
+        else:
+            aptget_install(pkg)
 
     click.echo("This installation script is a WIP")
 
@@ -150,9 +189,31 @@ def main():
 
 
 @main.command()
-def ubuntu():
+@click.option(
+    "-l",
+    "--log-level",
+    default="critical",
+    show_default=True,
+    type=click.Choice(
+        ["debug", "info", "warning", "error", "critical"],
+        case_sensitive=False
+    )
+)
+def ubuntu(log_level):
     """Installs these dotfiles on Ubuntu-like distributions"""
-    ubuntu_install_programs()
+    logger_log_level = 0
+    if log_level == "debug":
+        logger_log_level = logging.DEBUG
+    if log_level == "info":
+        logger_log_level = logging.INFO
+    elif log_level == "warning":
+        logger_log_level = logging.WARNING
+    elif log_level == "error":
+        logger_log_level = logging.ERROR
+    else:
+        logger_log_level = logging.CRITICAL
+
+    ubuntu_install_programs(logger_log_level)
 
 
 if __name__ == "__main__":
