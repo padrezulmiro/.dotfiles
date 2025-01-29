@@ -18,7 +18,7 @@ import click
 import subprocess
 import pexpect
 import logging
-from typing import int
+import typing
 
 ESC_CODE = "\033["
 DEL_LINE_CODE = ESC_CODE + "2K"
