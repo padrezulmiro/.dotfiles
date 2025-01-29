@@ -145,8 +145,6 @@ def aptget_install(pkg: str):
 
 def dpkg_is_pkg_installed(pkg: str) -> bool:
     """Confirm whether pkg is installed using Debian's dpkg"""
-    # TODO(azul) this is not enough to ensure the pkg is NOT installed
-    # we should use "dpkg-query -l pkg" and parse it
     command = ["dpkg-query", "-f", "'${db:Status-Want}\n'", "-W", pkg]
     output = pexpect.run(command, encoding="utf-8")
 
@@ -175,7 +173,8 @@ def ubuntu_install_programs(log_level: int):
             click.echo("{} is already installed!".format(pkg))
             logger.info("{} is already installed, skipping it".format(pkg))
         else:
-            aptget_install(pkg)
+            click.echo("{} is not installed, would install it")
+            # aptget_install(pkg)
 
     click.echo("This installation script is a WIP")
 
