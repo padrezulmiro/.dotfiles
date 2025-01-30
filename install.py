@@ -20,6 +20,7 @@ import click
 import subprocess
 import pexpect
 import logging
+import re
 import typing
 
 ESC_CODE = "\033["
@@ -151,8 +152,10 @@ def dpkg_is_pkg_installed(pkg: str) -> bool:
     command = " ".join(command_list)
     output = pexpect.run(command, encoding="utf-8")
 
-    is_installed = "install" in output
-    return is_installed
+    install_match = re.search(r"install", output)
+    if install_match:
+        return True
+    return False
 
 
 # ****************** INSTALLERS ***********************************************
@@ -177,9 +180,10 @@ def ubuntu_install_programs(log_level: int):
             click.echo("{} is already installed!".format(pkg))
             logger.info("{} is already installed, skipping it".format(pkg))
         else:
-            click.echo("{} is not installed, would install it")
+            click.echo("{} is not installed, would install it".format(pkg))
             # aptget_install(pkg)
 
+    logger.info("FINISH: Finished installation.")
     click.echo("This installation script is a WIP")
 
 
