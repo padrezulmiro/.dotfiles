@@ -21,6 +21,8 @@ import subprocess
 import pexpect
 import logging
 import re
+import os
+import sys
 import typing
 
 ESC_CODE = "\033["
@@ -165,10 +167,10 @@ def ubuntu_install_programs(log_level: int):
     """TODO"""
 
     # Confirm root access privileges
-    # if os.geteuid() != 0:
-    #     click.echo("This script requires root-level access. Please run it " +
-    #                "with sudo.")
-    #     sys.exit(1)
+    if os.geteuid() != 0:
+        click.echo("This script requires root-level access. Please run it " +
+                   "with sudo.")
+        sys.exit(1)
 
     global logger
     logger = init_logger(log_level)
@@ -183,7 +185,7 @@ def ubuntu_install_programs(log_level: int):
             click.echo("{} is not installed, would install it".format(pkg))
             # aptget_install(pkg)
 
-    logger.info("FINISH: Finished installation.")
+    logger.info("FINISH: Finished installation.\n")
     click.echo("This installation script is a WIP")
 
 
