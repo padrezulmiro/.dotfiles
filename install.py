@@ -8,13 +8,15 @@
 # [] zsh
 # [] oh-my-zsh
 # [] emacs
-# [] starship
-# [] fd
+# [] fd-find (doom-emacs dependency)
+# [] ripgrep (doom-emacs dependency)
 # [] doom-emacs
+# [] starship
 # [] zellij
 # [] neovim
 # [] some neovim starter
 # [] htop
+# [] some nerd font - FiraCode Nerd Font Mono
 
 import click
 import subprocess
@@ -120,32 +122,44 @@ def aptget_install(pkg: str):
     """Run an apt-get process to install pkg interactively"""
     logger.info("Installing {}".format(pkg))
 
-    command = "apt-get install " + pkg
-    child = pexpect.spawn(command, encoding="utf-8")
+    aptget_command = "apt-get install " + pkg
+    aptget_proc = pexpect.spawn(aptget_command, encoding="utf-8")
 
-    n_lines = 0
+    NL = 0
+    INTERACT_PROMPT = 1
+    EOF = 2
+    TIMEOUT = 3
     expect_patterns = [
         "\n",
         "Do you want to continue? \\[Y/n\\]",
-        pexpect.EOF
+        pexpect.EOF,
+        pexpect.TIMEOUT
     ]
-    expect_ret = child.expect(expect_patterns)
 
-    # TODO(azul) Doesn't handle abrupt termination, like in case the user
-    # replies n to the prompt to install
-    while expect_ret != 2:
-        line = "  " + child.before
-        if expect_ret == 0:
+    # FIXME(azul) Doesn't handle
+    # user replying no to the [Y/n] prompt
+    # tool hanging
+    # tool error
+    child_out_lines_num = 0
+    expect_ret = aptget_proc.expect(expect_patterns)
+    while expect_ret != EOF or expect_ret != TIMEOUT:
+        line = "  " + aptget_proc.before
+        if expect_ret == NL:
             click.echo(line)
-        if expect_ret == 1:
+        if expect_ret == INTERACT_PROMPT:
             click.echo(line, nl=False)
-            child.interact(escape_character="\r")
-            child.send("\n")
+            aptget_proc.interact(escape_character="\r")
+            aptget_proc.send("\n")
 
         # FIXME(azul) This should omit the reply sent by the user: y or n
-        logger.info("apt-get output: {}".format(child.before))
-        n_lines += 1
-        expect_ret = child.expect(expect_patterns)
+        logger.info("apt-get output: {}".format(aptget_proc.before))
+        child_out_lines_num += 1
+        expect_ret = aptget_proc.expect(expect_patterns)
+    aptget_proc.close()
+
+    normal_termination = expect_ret == EOF and aptget_proc.exitstatus == 0
+
+    return normal_termination
 
 
 def dpkg_is_pkg_installed(pkg: str) -> bool:
@@ -177,13 +191,14 @@ def ubuntu_install_programs(log_level: int):
     logger.info("START: Starting instalation on Ubuntu")
     log_and_echo(logging.INFO, "Installing utilities...")
 
+    install_success = False
     for pkg in aptget_packages:
         if dpkg_is_pkg_installed(pkg):
             click.echo("{} is already installed!".format(pkg))
             logger.info("{} is already installed, skipping it".format(pkg))
         else:
             click.echo("{} is not installed, would install it".format(pkg))
-            # aptget_install(pkg)
+            # install_success = aptget_install(pkg)
 
     logger.info("FINISH: Finished installation.\n")
     click.echo("This installation script is a WIP")
