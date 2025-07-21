@@ -1,0 +1,63 @@
+- name: Install development tools
+  hosts: localhost
+  connection: local
+  vars:
+      home: "{{ ansible_env.HOME }}"
+      tmp_folder: "{{ home }}/ansible_tmp"
+      bin_folder: "{{ home }}/bin"
+      omz_installer_url: "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
+      omz_installer_path: "{{ tmp_folder }}/omz-install.sh"
+      zellij_tar_bin_url: "https://github.com/zellij-org/zellij/releases/download/v0.42.2/zellij-x86_64-unknown-linux-musl.tar.gz"
+      zellij_tar_bin_path: "{{ tmp_folder }}/zellij.tar.gz"
+  tasks:
+    - name: Install zsh
+      become: yes
+      ansible.builtin.apt:
+          name: zsh
+          state: present
+    - name: Create temp directory
+      ansible.builtin.file:
+          path: "{{ tmp_folder }}"
+          state: directory
+          mode: '0755'
+    - name: Download oh-my-zsh installer script
+      ansible.builtin.get_url:
+          url: "{{ omz_installer_url }}"
+          dest: "{{ omz_installer_path }}"
+    - name: Run oh-my-zsh installer
+      ansible.builtin.script:
+          cmd: "{{ omz_installer_path }} --unattended"
+          executable: sh
+    - name: Install emacs
+      become: yes
+      ansible.builtin.apt:
+          name: emacs
+          state: present
+    - name: Install fd-find
+      become: yes
+      ansible.builtin.apt:
+          name: fd-find
+          state: present
+    - name: Install ripgrep
+      become: yes
+      ansible.builtin.apt:
+          name: ripgrep
+          state: present
+    - name: Create home bin directory
+      ansible.builtin.file:
+          path: "{{ bin_folder }}"
+          state: directory
+          mode: '0755'
+    - name: Download zellij pre-built bin
+      ansible.builtin.get_url:
+          url: "{{ zellij_tar_bin_url }}"
+          dest: "{{ zellij_tar_bin_path }}"
+    - name: Unarchive zellij pre-built bin
+      ansible.builtin.unarchive:
+          src: "{{ zellij_tar_bin_path }}"
+          dest: "{{ bin_folder }}"
+          remote_src: yes
+    - name: Delete temp directory
+      ansible.builtin.file:
+          path: "{{ tmp_folder }}"
+          state: absent

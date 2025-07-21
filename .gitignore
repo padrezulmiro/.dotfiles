@@ -4,3 +4,4 @@
 tmp/
 
 .venv
+cp-to-shared-folder.py

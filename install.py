@@ -5,18 +5,20 @@
 # 2. Check for click's installation
 
 # TODO(azul) Package wishlist:
-# [] zsh
-# [] oh-my-zsh
-# [] emacs
-# [] fd-find (doom-emacs dependency)
-# [] ripgrep (doom-emacs dependency)
-# [] doom-emacs
-# [] starship
-# [] zellij
-# [] neovim
-# [] some neovim starter
+# [] ansible
+# [x] zsh
+# [x] oh-my-zsh
+# [x] emacs
+# [x] fd-find (doom-emacs dependency)
+# [x] ripgrep (doom-emacs dependency)
+# [x] zellij
+# [] stow
 # [] htop
 # [] some nerd font - FiraCode Nerd Font Mono
+# [] starship
+# [] doom-emacs
+# [] neovim
+# [] some neovim starter
 
 import click
 import subprocess
@@ -35,6 +37,7 @@ CURSOR_DOWN_CODE = ESC_CODE + "B"
 LOG_FILE = "install.log"
 
 logger: logging.Logger = None
+log_level: int = 0
 
 aptget_packages = [
     "zsh",
@@ -177,7 +180,18 @@ def dpkg_is_pkg_installed(pkg: str) -> bool:
 # ****************** INSTALLERS ***********************************************
 
 
-def ubuntu_install_programs(log_level: int):
+def ubuntu_install_zsh():
+    """TODO"""
+
+    if dpkg_is_pkg_installed("zsh"):
+        click.echo("{} is already installed!".format("zsh"))
+        logger.info("{} is already installed, skipping it".format("zsh"))
+    else:
+        click.echo("{} is not installed, would install it".format("zsh"))
+        # install_success = aptget_install("zsh")
+
+
+def ubuntu_install_programs():
     """TODO"""
 
     # Confirm root access privileges
@@ -187,18 +201,19 @@ def ubuntu_install_programs(log_level: int):
         sys.exit(1)
 
     global logger
+    global log_level
     logger = init_logger(log_level)
     logger.info("START: Starting instalation on Ubuntu")
     log_and_echo(logging.INFO, "Installing utilities...")
 
-    install_success = False
-    for pkg in aptget_packages:
-        if dpkg_is_pkg_installed(pkg):
-            click.echo("{} is already installed!".format(pkg))
-            logger.info("{} is already installed, skipping it".format(pkg))
-        else:
-            click.echo("{} is not installed, would install it".format(pkg))
-            # install_success = aptget_install(pkg)
+    # install_success = False
+    # for pkg in aptget_packages:
+    #     if dpkg_is_pkg_installed(pkg):
+    #         click.echo("{} is already installed!".format(pkg))
+    #         logger.info("{} is already installed, skipping it".format(pkg))
+    #     else:
+    #         click.echo("{} is not installed, would install it".format(pkg))
+    #         # install_success = aptget_install(pkg)
 
     logger.info("FINISH: Finished installation.\n")
     click.echo("This installation script is a WIP")
@@ -224,21 +239,21 @@ def main():
         case_sensitive=False
     )
 )
-def ubuntu(log_level):
+def ubuntu(arg_log_level):
     """Installs these dotfiles on Ubuntu-like distributions"""
-    logger_log_level = 0
-    if log_level == "debug":
-        logger_log_level = logging.DEBUG
-    if log_level == "info":
-        logger_log_level = logging.INFO
-    elif log_level == "warning":
-        logger_log_level = logging.WARNING
-    elif log_level == "error":
-        logger_log_level = logging.ERROR
+    global log_level
+    if arg_log_level == "debug":
+        log_level = logging.DEBUG
+    if arg_log_level == "info":
+        log_level = logging.INFO
+    elif arg_log_level == "warning":
+        log_level = logging.WARNING
+    elif arg_log_level == "error":
+        log_level = logging.ERROR
     else:
-        logger_log_level = logging.CRITICAL
+        log_level = logging.CRITICAL
 
-    ubuntu_install_programs(logger_log_level)
+    ubuntu_install_programs()
 
 
 if __name__ == "__main__":
