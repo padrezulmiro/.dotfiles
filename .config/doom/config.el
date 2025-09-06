@@ -123,10 +123,13 @@ https://github.com/doomemacs/doomemacs/issues/7511#issuecomment-1869710558"
   :after #'consult-theme
   (setq doom-theme theme))
 
+;; In spite of fixing the issue with 'doom-theme' not being reset, the cursor's
+;; color is not updated when selecting an already loded theme
+
 ;; While one could possibly use doom's pyenv module extension, or some solution
 ;; using direnv (about which I haven't read much on yet), this solution is an
 ;; quick and dirty fix
-(defun azlcfg--activate-python-venv (venv-path)
+(defun zcfg/activate-python-venv (venv-path)
   "Activate a python's virtual environment which was set up using its standard
 library module venv.
 
@@ -146,9 +149,24 @@ The activation is achieved by checking if the given directory is named \".venv\"
         (message "aZul config: Activating python venv in %s" venv-path))
       (message "Didn't find a python venv directory!"))))
 
+;; This function intends on fixing an issue with evil-macros, which doesn't
+;; detect when the evil-escape keychord is triggered. Replaying the macro types the
+;; keychord to the screen instead of escaping to normal mode.
+;; Maybe I can get away with simply checking if insert mode is active and manually
+;; removing the chars from the macro register?
+(defun zcfg/fix-evil-escape-and-macros ()
+  "TODO This function intends on fixing an issue with evil-macros, which don't
+detect when the evil-escape keychord is triggered. Replaying the macro types the
+keychord to the screen instead of escaping to normal mode.")
+
 ;; TODO(azul) add trigger to change theme depending on hour of the day
 
 ;; TODO(azul) turn off a few minor modes like highlight-numbers in buffers with LSP
 ;; mode turned on
 
-;; TODO add for..of snippet to typescript and javascript language servers
+;; TODO(azul) add for..of snippet to typescript and javascript language servers
+
+;; TODO(azul) When a file is folded by evil-mode the function of going up by a
+;; specific number of lines it doesn't take into account the line number gutter
+;; Maybe I could simply replace the binding `k` into smth else other than the original
+;; evil func

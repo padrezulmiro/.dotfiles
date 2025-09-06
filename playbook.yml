@@ -9,25 +9,14 @@
       omz_installer_path: "{{ tmp_folder }}/omz-install.sh"
       zellij_tar_bin_url: "https://github.com/zellij-org/zellij/releases/download/v0.42.2/zellij-x86_64-unknown-linux-musl.tar.gz"
       zellij_tar_bin_path: "{{ tmp_folder }}/zellij.tar.gz"
+      doom_emacs_install_path: "{{ home }}/.config/emacs"
+      doom_bin: "{{ home }}/.config/emacs/bin/doom"
   tasks:
     - name: Install zsh
       become: yes
       ansible.builtin.apt:
           name: zsh
           state: present
-    - name: Create temp directory
-      ansible.builtin.file:
-          path: "{{ tmp_folder }}"
-          state: directory
-          mode: '0755'
-    - name: Download oh-my-zsh installer script
-      ansible.builtin.get_url:
-          url: "{{ omz_installer_url }}"
-          dest: "{{ omz_installer_path }}"
-    - name: Run oh-my-zsh installer
-      ansible.builtin.script:
-          cmd: "{{ omz_installer_path }} --unattended"
-          executable: sh
     - name: Install emacs
       become: yes
       ansible.builtin.apt:
@@ -43,11 +32,50 @@
       ansible.builtin.apt:
           name: ripgrep
           state: present
+    - name: Install fzf
+      become: yes
+      ansible.builtin.apt:
+          name: fzf
+          state: present
+    - name: Install htop
+      become: yes
+      ansible.builtin.apt:
+          name: htop
+          state: present
+    - name: Install stow
+      become: yes
+      ansible.builtin.apt:
+          name: stow
+          state: present
+    - name: Git clone doom-emacs
+      ansible.builtin.git:
+          repo: "https://github.com/doomemacs/doomemacs"
+          dest: "{{ doom_emacs_install_path }}"
+          depth: 1
+    - name: Run doom install
+      ansible.builtin.command:
+        argv:
+            - "{{ doom_bin }}"
+            - "install"
+            - "--force"
     - name: Create home bin directory
       ansible.builtin.file:
           path: "{{ bin_folder }}"
           state: directory
           mode: '0755'
+    - name: Create temp directory
+      ansible.builtin.file:
+          path: "{{ tmp_folder }}"
+          state: directory
+          mode: '0755'
+    - name: Download oh-my-zsh installer script
+      ansible.builtin.get_url:
+          url: "{{ omz_installer_url }}"
+          dest: "{{ omz_installer_path }}"
+    - name: Run oh-my-zsh installer
+      ansible.builtin.script:
+          cmd: "{{ omz_installer_path }} --unattended"
+          executable: sh
     - name: Download zellij pre-built bin
       ansible.builtin.get_url:
           url: "{{ zellij_tar_bin_url }}"

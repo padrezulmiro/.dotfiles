@@ -12,8 +12,8 @@
 # [x] fd-find (doom-emacs dependency)
 # [x] ripgrep (doom-emacs dependency)
 # [x] zellij
-# [] stow
-# [] htop
+# [x] stow
+# [x] htop
 # [] some nerd font - FiraCode Nerd Font Mono
 # [] starship
 # [] doom-emacs
