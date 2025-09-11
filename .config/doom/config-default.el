@@ -3,6 +3,12 @@
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
 
+
+;; Some functionality uses this to identify you, e.g. GPG configuration, email
+;; clients, file templates and snippets. It is optional.
+(setq user-full-name "aZul"
+      user-mail-address "fmdcosta.piano@gmail.com")
+
 ;; Doom exposes five (optional) variables for controlling fonts in Doom:
 ;;
 ;; - `doom-font' -- the primary font to use
@@ -11,13 +17,17 @@
 ;;   presentations or streaming.
 ;; - `doom-unicode-font' -- for unicode glyphs
 ;; - `doom-serif-font' -- for the `fixed-pitch-serif' face
-
+;;
 ;; See 'C-h v doom-font' for documentation and more examples of what they
 ;; accept. For example:
-
+;;
 ;;(setq doom-font (font-spec :family "Fira Code" :size 12 :weight 'semi-light)
 ;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
 ;;
+
+(setq doom-font (font-spec :family "FiraCode Nerd Font Mono" :size 16))
+
+
 ;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
 ;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
 ;; refresh your font settings. If Emacs still can't find your font, it likely
@@ -29,9 +39,23 @@
 
 ;; (setq doom-theme 'doom-gruvbox)
 
+;; `gruvbox-material' contrast and palette options
+(setq doom-everforest-background "soft")  ; or hard (defaults to soft)
+
+;; `gruvbox-material-light' contrast and palette options
+(setq doom-everforest-light-background "soft") ; or hard (defaults to soft)
+
+;; set `doom-theme'
+(setq doom-theme 'doom-everforest) ; dark variant
+
+;; This determines the style of line numbers in effect. If set to `nil', line
+;; numbers are disabled. For relative line numbers, set this to `relative'.
+(setq display-line-numbers-type 'relative)
+
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
-;; (setq org-directory "~/org/")
+(setq org-directory "~/org/")
+
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
@@ -65,21 +89,33 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
+
 ;; Add load-paths for custom packages and modules
 ;; (load-path wasn't updated for a few modules)
 
-(setq user-full-name "aZul"
-      user-mail-address "fmdcosta.piano@gmail.com")
+(add-load-path! "../.emacs.d/.local/straight/build-28.2/minimap")
 
-(setq doom-font (font-spec :family "Firacode Nerd Font Mono" :size 16))
+;; Display ruler at column 80
+(global-display-fill-column-indicator-mode)
 
-(setq doom-everforest-background "soft")  ; or hard (defaults to soft)
-(setq doom-everforest-light-background "soft") ; or hard (defaults to soft)
-(setq doom-theme 'doom-everforest) ; dark variant
+;; Save recent files to recentf each time a buffer is loaded from a file
+(add-hook 'find-file-hook 'recentf-save-list)
 
+;; This option is added so which-key popup shows all the options
+(setq which-key-allow-imprecise-window-fit nil)
+
+;; Decrease undo's amalgamation
+(setq amalgamating-undo-limit 1)
+
+;; Configure evil-escape
+(setq evil-escape-key-sequence "fj")
+(setq evil-escape-delay 0.20)
+
+;; Make sure 'doom-theme' is reset after 'consult-theme' is called
+;; when selecting an already loaded theme
 (defadvice! azlcfg--set-doom-theme-after-consult-a (theme)
-  "Sets `doom-theme' to theme regardless of `consult-theme' implementation.
-currently, `doom-theme' isn't updated when selecting an already loaded
+  "Sets `doom-theme' to THEME regardless of `consult-theme' implementation.
+Currently, `doom-theme' isn't updated when selecting an already loaded
 theme.
 
 This fix is based on
@@ -87,25 +123,12 @@ https://github.com/doomemacs/doomemacs/issues/7511#issuecomment-1869710558"
   :after #'consult-theme
   (setq doom-theme theme))
 
-(setq display-line-numbers-type 'relative)
+;; In spite of fixing the issue with 'doom-theme' not being reset, the cursor's
+;; color is not updated when selecting an already loded theme
 
-(global-display-fill-column-indicator-mode)
-
-(map! :after org
-      :map org-mode-map
-      :localleader
-      (:prefix ("B" . "org-babel")
-       :desc "tangle" :nv "t" #'org-babel-tangle))
-
-(setq org-directory "~/org/")
-
-(setq evil-escape-key-sequence "fj")
-(setq evil-escape-delay 0.20)
-
-(add-hook 'find-file-hook 'recentf-save-list)
-
-(setq which-key-allow-imprecise-window-fit nil)
-
+;; While one could possibly use doom's pyenv module extension, or some solution
+;; using direnv (about which I haven't read much on yet), this solution is an
+;; quick and dirty fix
 (defun zcfg/activate-python-venv (venv-path)
   "Activate a python's virtual environment which was set up using its standard
 library module venv.
@@ -117,11 +140,33 @@ The activation is achieved by checking if the given directory is named \".venv\"
       (progn
         (setq-local process-environment (copy-sequence
                                          process-environment))
-        (setenv "path" (concat (expand-file-name venv-path)
+        (setenv "PATH" (concat (expand-file-name venv-path)
                                "/bin:"
-                               (getenv "path")))
-        (setenv "pythonpath" (concat (expand-file-name venv-path) "/lib"))
-        (setenv "virtual_env" venv-path)
+                               (getenv "PATH")))
+        (setenv "PYTHONPATH" (concat (expand-file-name venv-path) "/lib"))
+        (setenv "VIRTUAL_ENV" venv-path)
         (setq-local lsp-pylsp-plugins-jedi-environment venv-path)
-        (message "azul config: Activating python venv in %s" venv-path))
+        (message "aZul config: Activating python venv in %s" venv-path))
       (message "Didn't find a python venv directory!"))))
+
+;; This function intends on fixing an issue with evil-macros, which doesn't
+;; detect when the evil-escape keychord is triggered. Replaying the macro types the
+;; keychord to the screen instead of escaping to normal mode.
+;; Maybe I can get away with simply checking if insert mode is active and manually
+;; removing the chars from the macro register?
+(defun zcfg/fix-evil-escape-and-macros ()
+  "TODO This function intends on fixing an issue with evil-macros, which don't
+detect when the evil-escape keychord is triggered. Replaying the macro types the
+keychord to the screen instead of escaping to normal mode.")
+
+;; TODO(azul) add trigger to change theme depending on hour of the day
+
+;; TODO(azul) turn off a few minor modes like highlight-numbers in buffers with LSP
+;; mode turned on
+
+;; TODO(azul) add for..of snippet to typescript and javascript language servers
+
+;; TODO(azul) When a file is folded by evil-mode the function of going up by a
+;; specific number of lines it doesn't take into account the line number gutter
+;; Maybe I could simply replace the binding `k` into smth else other than the original
+;; evil func

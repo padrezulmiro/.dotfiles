@@ -1,3 +1,10 @@
+#+title: Emacs config
+#+property: header-args :tangle config.el
+
+* Default Config
+The default ~config.el~ packaged with ~doom-emacs~ already comes with some sensible configurations.
+
+#+begin_src emacs-lisp
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
 ;; Place your private configuration here! Remember, you do not need to run 'doom
@@ -67,16 +74,35 @@
 
 ;; Add load-paths for custom packages and modules
 ;; (load-path wasn't updated for a few modules)
+#+end_src
 
+** Identification
+Some functionality uses this to identify the user, e.g. GPG configuration, email clients, file templates and snippets. It is optional.
+
+#+begin_src emacs-lisp
 (setq user-full-name "aZul"
       user-mail-address "fmdcosta.piano@gmail.com")
+#+end_src
 
+* Appearance
+** Font
+Set the font and font size.
+#+begin_src emacs-lisp
 (setq doom-font (font-spec :family "Firacode Nerd Font Mono" :size 16))
+#+end_src
 
+** Doom Theme
+Set ~doom-everforest~ as the default doom theme.
+
+#+begin_src emacs-lisp
 (setq doom-everforest-background "soft")  ; or hard (defaults to soft)
 (setq doom-everforest-light-background "soft") ; or hard (defaults to soft)
 (setq doom-theme 'doom-everforest) ; dark variant
+#+end_src
 
+Changing to an already loaded theme doesn't update them. A hacky solution is to force an update to ~doom-theme~ after ~consult-theme~ finishes execution. This was based on a fix from [[https://github.com/doomemacs/doomemacs/issues/7511#issuecomment-1869710558][this github comment]].
+
+#+begin_src emacs-lisp
 (defadvice! azlcfg--set-doom-theme-after-consult-a (theme)
   "Sets `doom-theme' to theme regardless of `consult-theme' implementation.
 currently, `doom-theme' isn't updated when selecting an already loaded
@@ -86,26 +112,66 @@ This fix is based on
 https://github.com/doomemacs/doomemacs/issues/7511#issuecomment-1869710558"
   :after #'consult-theme
   (setq doom-theme theme))
+#+end_src
 
+** Buffer appearance
+Set the gutter line number mode. if set to `nil', numbers are disabled. For relative line numbers, set this to `relative'.
+
+# TODO(azul) Need to look at the value 'visual
+#+begin_src emacs-lisp
 (setq display-line-numbers-type 'relative)
+#+end_src
 
+I'm a big proponent of adhering to a 80 character column limit for coding, as it easily allows for a 2 window setup.
+#+begin_src emacs-lisp
 (global-display-fill-column-indicator-mode)
+#+end_src
 
+* Keybidings
+** org-mode
+#+begin_src emacs-lisp
 (map! :after org
       :map org-mode-map
       :localleader
       (:prefix ("B" . "org-babel")
        :desc "tangle" :nv "t" #'org-babel-tangle))
+#+end_src
 
+* Major modes config
+** org-mode
+The ~org-directory~ variable must be set before org-mode loads.
+#+begin_src emacs-lisp
 (setq org-directory "~/org/")
+#+end_src
 
+* Minor modes config
+** evil-mode
+*** evil-escape
+Set up an escape key sequence for evil-mode to quit insert mode.
+#+begin_src emacs-lisp
 (setq evil-escape-key-sequence "fj")
 (setq evil-escape-delay 0.20)
+#+end_src
 
+** recentf-mode
+Add files to ~recentf~ every time that a buffer is loaded from a file.
+#+begin_src emacs-lisp
 (add-hook 'find-file-hook 'recentf-save-list)
+#+end_src
 
+** which key
+This option is added so which-key popup shows all the options.
+#+begin_src emacs-lisp
 (setq which-key-allow-imprecise-window-fit nil)
+#+end_src
 
+* Miscellaneous
+** Python venv
+While one could possibly use doom's pyenv module extension, or some solution
+using direnv (about which i haven't read much on yet), this solution is an
+quick and dirty fix.
+
+#+begin_src emacs-lisp
 (defun zcfg/activate-python-venv (venv-path)
   "Activate a python's virtual environment which was set up using its standard
 library module venv.
@@ -125,3 +191,16 @@ The activation is achieved by checking if the given directory is named \".venv\"
         (setq-local lsp-pylsp-plugins-jedi-environment venv-path)
         (message "azul config: Activating python venv in %s" venv-path))
       (message "Didn't find a python venv directory!"))))
+#+end_src
+* TODO
+# TODO(azul) add trigger to change theme depending on hour of the day
+
+# TODO(azul) turn off a few minor modes like highlight-numbers in buffers with LSP
+# mode turned on
+
+# TODO(azul) add for..of snippet to typescript and javascript language servers
+
+# TODO(azul) When a file is folded by evil-mode the function of going up by a
+# specific number of lines it doesn't take into account the line number gutter
+# Maybe I could simply replace the binding `k` into smth else other than the original
+# evil func
