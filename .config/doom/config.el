@@ -77,7 +77,7 @@
 (setq doom-everforest-light-background "soft") ; or hard (defaults to soft)
 (setq doom-theme 'doom-everforest) ; dark variant
 
-(defadvice! azlcfg--set-doom-theme-after-consult-a (theme)
+(defadvice! zcfg--set-doom-theme-after-consult-a (theme)
   "Sets `doom-theme' to theme regardless of `consult-theme' implementation.
 currently, `doom-theme' isn't updated when selecting an already loaded
 theme.
@@ -86,6 +86,48 @@ This fix is based on
 https://github.com/doomemacs/doomemacs/issues/7511#issuecomment-1869710558"
   :after #'consult-theme
   (setq doom-theme theme))
+
+(defgroup z-config nil
+  "My own configuration"
+  :group 'emacs)
+
+(defcustom zcfg-day-theme 'doom-homage-white
+  "Azul config's daytime theme"
+  :group 'z-config)
+
+(defcustom zcfg-night-theme 'doom-everforest
+  "Azul config's nighttime theme"
+  :group 'z-config)
+
+(defcustom zcfg-contrast-theme 'doom-1337
+  "Azul config's contrast theme"
+  :group 'z-config)
+
+(defcustom zcfg-sunrise-time "07:00am"
+  "The time of sunrise"
+  :type '(string)
+  :group 'z-config)
+
+(defcustom zcfg-sunset-time "08:00pm"
+  "The time of sunset"
+  :type '(string)
+  :group 'z-config)
+
+(defun zcfg--switch-day-night-themes (time)
+  "Switch between day and night themes, e.g. after sunrise this function
+updates the theme to `zcfg-day-theme' whether that's the current theme or
+not. Likewise, for the night theme. TIME is one of two symbols `day' or
+`night'"
+
+  (cond ((eq time 'day)
+         (unless (equal doom-theme zcfg-day-theme)
+           (load-theme zcfg-day-theme :no-confirm)))
+        ((eq time 'night)
+         (unless (equal doom-theme zcfg-night-theme)
+           (load-theme zcfg-night-theme :no-confirm)))))
+
+(run-at-time zcfg-sunrise-time 86400 #'zcfg--switch-day-night-themes 'day)
+(run-at-time zcfg-sunset-time 86400 #'zcfg--switch-day-night-themes 'night)
 
 (setq display-line-numbers-type 'relative)
 
