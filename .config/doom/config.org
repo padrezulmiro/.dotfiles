@@ -140,7 +140,7 @@ Doom doesn't come with a day/night theme system by default, one that automatical
   :type '(string)
   :group 'z-config)
 
-(defcustom zcfg-sunset-time "08:00pm"
+(defcustom zcfg-sunset-time "06:00pm"
   "The time of sunset"
   :type '(string)
   :group 'z-config)
@@ -169,7 +169,7 @@ Set the gutter line number mode. if set to `nil', numbers are disabled. For rela
 
 # TODO(azul) Need to look at the value 'visual
 #+begin_src emacs-lisp
-(setq display-line-numbers-type 'relative)
+(setq display-line-numbers-type 'visual)
 #+end_src
 
 I'm a big proponent of adhering to a 80 character column limit for coding, as it easily allows for a 2 window setup.
@@ -186,6 +186,8 @@ I'm a big proponent of adhering to a 80 character column limit for coding, as it
       (:prefix ("B" . "org-babel")
        :desc "tangle" :nv "t" #'org-babel-tangle))
 #+end_src
+
+One could, I certainly did, expect that the ~prefix~ keyword didn't have to be encircled in a list. But this is due to the way that doom implements ~map!~, and it's not mentioned in their docs.
 
 * Major modes config
 ** org-mode
@@ -215,8 +217,9 @@ This option is added so which-key popup shows all the options.
 (setq which-key-allow-imprecise-window-fit nil)
 #+end_src
 
-* Miscellaneous
-** Python venv
+* Programming environment
+** Python
+*** Python venv
 While one could possibly use doom's pyenv module extension, or some solution
 using direnv (about which i haven't read much on yet), this solution is an
 quick and dirty fix.
@@ -242,15 +245,49 @@ The activation is achieved by checking if the given directory is named \".venv\"
         (message "azul config: Activating python venv in %s" venv-path))
       (message "Didn't find a python venv directory!"))))
 #+end_src
+
+* Miscellaneous
+** Imenu
+The default way that ~consult~ presents the ~imenu~ item list is not necessarily in order of appearance. But I'd like a way to quickly navigate through the buffer using the items as a "table of contents" of sort.
+
+Currently, the list is being flattened, but I might change my mind on that in the future.
+
+#+begin_src elisp
+(defun zcfg/consult-imenu-toc ()
+  "Select item from flattened and sorted `imenu' with preview.
+
+The items are listed sorted according to their appearance in the buffer.
+
+See also `consult-imenu'."
+  (interactive)
+  (consult-imenu--select
+   "Go to item: "
+   (consult--slow-operation "Building Imenu..."
+     (zcfg--imenu-items-pos-sorted))))
+
+(defun zcfg--imenu-items-pos-sorted ()
+  "Return imenu items in order of buffer position.
+
+If the items haven't been indexed yet, the indexation is executed."
+
+;;; The cache may have not been built yet
+  (unless (equal (car consult-imenu--cache) (buffer-modified-tick))
+    (setq consult-imenu--cache
+          (cons (buffer-modified-tick) (consult-imenu--compute))))
+
+  (let* ((items (cdr consult-imenu--cache)))
+    (seq-sort #'zcfg--imenu-item-less-than items)))
+
+(defun zcfg--imenu-item-less-than (first-item second-item)
+  ""
+  (let* ((first-item-marker-pos (marker-position (cdr first-item)))
+         (second-item-marker-pos (marker-position (cdr second-item))))
+    (< first-item-marker-pos second-item-marker-pos)))
+#+end_src
+
 * TODO
-# TODO(azul) add trigger to change theme depending on hour of the day
+Turn off a few minor modes like highlight-numbers in buffers with LSP mode turned on
 
-# TODO(azul) turn off a few minor modes like highlight-numbers in buffers with LSP
-# mode turned on
+Add for..of snippet to typescript and javascript language servers
 
-# TODO(azul) add for..of snippet to typescript and javascript language servers
-
-# TODO(azul) When a file is folded by evil-mode the function of going up by a
-# specific number of lines it doesn't take into account the line number gutter
-# Maybe I could simply replace the binding `k` into smth else other than the original
-# evil func
+Completion options don't fuzzy find

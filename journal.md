@@ -65,3 +65,26 @@ Regarding the fact that Ansible doesn't [write](#4-Aug-25) to stdout whatever th
 ## 30 Aug 25 
 #emacs-config
 Just recalled again that I wanted to work on some functions that would allow to set up the window layout of workspaces. Something like, press `SPC TAB w` and then `j` for the setup I use more: 1 vertical big window on the left and two split up horizontal windows on the right.
+
+## 23 Sep 25
+#emacs-config
+Haven't checked up for a while, but I've since adopted a literate approach to my emacs config. And then I've added an automatic day/night theme system to it.
+
+Now I'm focusing on a nitpick, that the `consult-imenu` doesn't order hits by order of appearance in the buffer. I'm not sure why this happens.
+
+Looking through the source revealed `consult-imenu--compute`, which is used to cache the imenu hits. Going deeper suggests that `helpful--imenu-index` could be the responsible to create the list of imenu indices.
+
+## 24 Sep 25
+#emacs-config
+I'm reaching the conclusion this might need a solution depending on the LSP server being used in each buffer. `consult-imenu--compute` uses a buffer-local var `imenu-create-index-function`, and LSP served buffers get their imenu-index directly from the server via `lsp-imenu-index-function`, so it might be coming scrambled straight from the server... not good! 
+
+PS: I started noticing this issue on CSS files. There, the local var has the value of OClosure, whatever that is. ChatGPT says it's an "Opaque Closure", but the Elisp docs don't mention anything like that.
+
+OK, it's not a "Opaque Closure" at all. Dumb AI, it's an OPEN closure instead.
+
+## 26 Sep 25
+Might've made a breakthrough. So, the imenu items list for a buffer is saved by `consult-imenu--compute` on a cache variable: `consult-imenu--cache`. That led me to realize that the way this list is built is specified to save the point location of each item. Is there anything stopping me to just simply reorder the list?
+
+Either way, I need to pay attention because the cache might be empty (eg when emacs starts).
+
+I've just confirmed my suspicions, it's empty indeed.

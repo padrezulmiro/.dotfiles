@@ -108,7 +108,7 @@ https://github.com/doomemacs/doomemacs/issues/7511#issuecomment-1869710558"
   :type '(string)
   :group 'z-config)
 
-(defcustom zcfg-sunset-time "08:00pm"
+(defcustom zcfg-sunset-time "06:00pm"
   "The time of sunset"
   :type '(string)
   :group 'z-config)
@@ -129,7 +129,7 @@ not. Likewise, for the night theme. TIME is one of two symbols `day' or
 (run-at-time zcfg-sunrise-time 86400 #'zcfg--switch-day-night-themes 'day)
 (run-at-time zcfg-sunset-time 86400 #'zcfg--switch-day-night-themes 'night)
 
-(setq display-line-numbers-type 'relative)
+(setq display-line-numbers-type 'visual)
 
 (global-display-fill-column-indicator-mode)
 
@@ -167,3 +167,34 @@ The activation is achieved by checking if the given directory is named \".venv\"
         (setq-local lsp-pylsp-plugins-jedi-environment venv-path)
         (message "azul config: Activating python venv in %s" venv-path))
       (message "Didn't find a python venv directory!"))))
+
+(defun zcfg/consult-imenu-toc ()
+  "Select item from flattened and sorted `imenu' with preview.
+
+The items are listed sorted according to their appearance in the buffer.
+
+See also `consult-imenu'."
+  (interactive)
+  (consult-imenu--select
+   "Go to item: "
+   (consult--slow-operation "Building Imenu..."
+     (zcfg--imenu-items-pos-sorted))))
+
+(defun zcfg--imenu-items-pos-sorted ()
+  "Return imenu items in order of buffer position.
+
+If the items haven't been indexed yet, the indexation is executed."
+
+;;; The cache may have not been built yet
+  (unless (equal (car consult-imenu--cache) (buffer-modified-tick))
+    (setq consult-imenu--cache
+          (cons (buffer-modified-tick) (consult-imenu--compute))))
+ 
+  (let* ((items (cdr consult-imenu--cache)))
+    (seq-sort #'zcfg--imenu-item-less-than items)))
+
+(defun zcfg--imenu-item-less-than (first-item second-item)
+  ""
+  (let* ((first-item-marker-pos (marker-position (cdr first-item)))
+         (second-item-marker-pos (marker-position (cdr second-item))))
+    (< first-item-marker-pos second-item-marker-pos)))
