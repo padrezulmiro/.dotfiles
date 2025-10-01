@@ -165,11 +165,13 @@ not. Likewise, for the night theme. TIME is one of two symbols `day' or
 #+end_src
 
 ** Buffer appearance
-Set the gutter line number mode. if set to `nil', numbers are disabled. For relative line numbers, set this to `relative'.
+Set the gutter line number mode. if set to `nil', numbers are disabled. For relative line numbers, set this to `'relative'.
+
+But there's an issue when buffers have their contents folded. In those cases the relative numbers don't show exactly the number of lines, so that `20j` might not go down 20 lines.
 
 # TODO(azul) Need to look at the value 'visual
 #+begin_src emacs-lisp
-(setq display-line-numbers-type 'visual)
+(setq display-line-numbers-type 'relative)
 #+end_src
 
 I'm a big proponent of adhering to a 80 character column limit for coding, as it easily allows for a 2 window setup.
@@ -283,6 +285,12 @@ If the items haven't been indexed yet, the indexation is executed."
   (let* ((first-item-marker-pos (marker-position (cdr first-item)))
          (second-item-marker-pos (marker-position (cdr second-item))))
     (< first-item-marker-pos second-item-marker-pos)))
+#+end_src
+
+~consult-imenu~ is not loaded at startup by emacs, which requires this:
+
+#+begin_src elisp
+(autoload 'consult-imenu--select "consult-imenu")
 #+end_src
 
 * TODO

@@ -129,7 +129,7 @@ not. Likewise, for the night theme. TIME is one of two symbols `day' or
 (run-at-time zcfg-sunrise-time 86400 #'zcfg--switch-day-night-themes 'day)
 (run-at-time zcfg-sunset-time 86400 #'zcfg--switch-day-night-themes 'night)
 
-(setq display-line-numbers-type 'visual)
+(setq display-line-numbers-type 'relative)
 
 (global-display-fill-column-indicator-mode)
 
@@ -189,7 +189,7 @@ If the items haven't been indexed yet, the indexation is executed."
   (unless (equal (car consult-imenu--cache) (buffer-modified-tick))
     (setq consult-imenu--cache
           (cons (buffer-modified-tick) (consult-imenu--compute))))
- 
+
   (let* ((items (cdr consult-imenu--cache)))
     (seq-sort #'zcfg--imenu-item-less-than items)))
 
@@ -198,3 +198,5 @@ If the items haven't been indexed yet, the indexation is executed."
   (let* ((first-item-marker-pos (marker-position (cdr first-item)))
          (second-item-marker-pos (marker-position (cdr second-item))))
     (< first-item-marker-pos second-item-marker-pos)))
+
+(autoload 'consult-imenu--select "consult-imenu")

@@ -88,3 +88,10 @@ Might've made a breakthrough. So, the imenu items list for a buffer is saved by 
 Either way, I need to pay attention because the cache might be empty (eg when emacs starts).
 
 I've just confirmed my suspicions, it's empty indeed.
+
+## 30 Sep 25
+I was able to code a TOC version of `consult-imenu` by sorting the items in 'consult-imenu--cache'. The issue now is that my function calls another one whose file is not loaded when Emacs starts up. A possible solution is to simply load it using `load!`. 
+
+Asked about that in [discord](https://discord.com/channels/406534637242810369/505437595652849684/1422984146585649234).
+
+Got an answer in the meantime and fixed the issue.
