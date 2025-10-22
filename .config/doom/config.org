@@ -84,9 +84,15 @@ Some functionality uses this to identify the user, e.g. GPG configuration, email
       user-mail-address "fmdcosta.piano@gmail.com")
 #+end_src
 
+* Emacs behaviour
+** Windowing system
+Over the few years I've been using Doom-Emacs I found I'm very particular with the layout of my windows. Typically I use the 2 vertical window setup, or 1 vertical window on the right and 2 horizontal ones on the left.
+
+I'd like to write a command that sets up these layouts and also a way to point to the windows with a number.
 * Appearance
 ** Font
 Set the font and font size.
+
 #+begin_src emacs-lisp
 (setq doom-font (font-spec :family "Firacode Nerd Font Mono" :size 16))
 #+end_src
@@ -179,7 +185,7 @@ I'm a big proponent of adhering to a 80 character column limit for coding, as it
 (global-display-fill-column-indicator-mode)
 #+end_src
 
-* Keybidings
+* Keybindings
 ** org-mode
 #+begin_src emacs-lisp
 (map! :after org
@@ -219,7 +225,7 @@ This option is added so which-key popup shows all the options.
 (setq which-key-allow-imprecise-window-fit nil)
 #+end_src
 
-* Programming environment
+* Programming environments
 ** Python
 *** Python venv
 While one could possibly use doom's pyenv module extension, or some solution
