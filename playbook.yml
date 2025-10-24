@@ -1,6 +1,7 @@
 - name: Install development tools
   hosts: localhost
   connection: local
+
   vars:
       home: "{{ ansible_env.HOME }}"
       tmp_folder: "{{ home }}/ansible_tmp"
@@ -11,81 +12,27 @@
       zellij_tar_bin_path: "{{ tmp_folder }}/zellij.tar.gz"
       doom_emacs_install_path: "{{ home }}/.config/emacs"
       doom_bin: "{{ home }}/.config/emacs/bin/doom"
+
+  vars_prompt:
+    - name: install_core
+      prompt: Do you want to install the core tools? (y/n)
+      private: false
+
+    - name: install_java
+      prompt: Do you want to install dependencies for Java development? (y/n)
+      private: false
+
+    - name: install_go
+      prompt: Do you want to install dependencies for Go development? (y/n)
+      private: false
+
+    - name: install_typescript
+      prompt: Do you want to install dependencies for Typescript development? (y/n)
+      private: false
+
   tasks:
-    - name: Install zsh
-      become: yes
-      ansible.builtin.apt:
-          name: zsh
-          state: present
-    - name: Install emacs
-      become: yes
-      ansible.builtin.apt:
-          name: emacs
-          state: present
-    - name: Install fd-find
-      become: yes
-      ansible.builtin.apt:
-          name: fd-find
-          state: present
-    - name: Install ripgrep
-      become: yes
-      ansible.builtin.apt:
-          name: ripgrep
-          state: present
-    - name: Install fzf
-      become: yes
-      ansible.builtin.apt:
-          name: fzf
-          state: present
-    - name: Install htop
-      become: yes
-      ansible.builtin.apt:
-          name: htop
-          state: present
-    - name: Install stow
-      become: yes
-      ansible.builtin.apt:
-          name: stow
-          state: present
-    - name: Git clone doom-emacs
-      ansible.builtin.git:
-          repo: "https://github.com/doomemacs/doomemacs"
-          dest: "{{ doom_emacs_install_path }}"
-          depth: 1
-    - name: Run doom install
-      ansible.builtin.command:
-        argv:
-            - "{{ doom_bin }}"
-            - "install"
-            - "--force"
-    - name: Create home bin directory
-      ansible.builtin.file:
-          path: "{{ bin_folder }}"
-          state: directory
-          mode: '0755'
-    - name: Create temp directory
-      ansible.builtin.file:
-          path: "{{ tmp_folder }}"
-          state: directory
-          mode: '0755'
-    - name: Download oh-my-zsh installer script
-      ansible.builtin.get_url:
-          url: "{{ omz_installer_url }}"
-          dest: "{{ omz_installer_path }}"
-    - name: Run oh-my-zsh installer
-      ansible.builtin.script:
-          cmd: "{{ omz_installer_path }} --unattended"
-          executable: sh
-    - name: Download zellij pre-built bin
-      ansible.builtin.get_url:
-          url: "{{ zellij_tar_bin_url }}"
-          dest: "{{ zellij_tar_bin_path }}"
-    - name: Unarchive zellij pre-built bin
-      ansible.builtin.unarchive:
-          src: "{{ zellij_tar_bin_path }}"
-          dest: "{{ bin_folder }}"
-          remote_src: yes
-    - name: Delete temp directory
-      ansible.builtin.file:
-          path: "{{ tmp_folder }}"
-          state: absent
+    # TODO(azul) Need to warn user if install_core var is neither 'y' or 'n'
+
+    - name: Install core tools
+      ansible.builtin.include_tasks: ansible-tasks/install-core.yml
+      when: install_core == "y"

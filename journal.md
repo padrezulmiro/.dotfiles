@@ -95,3 +95,14 @@ I was able to code a TOC version of `consult-imenu` by sorting the items in 'con
 Asked about that in [discord](https://discord.com/channels/406534637242810369/505437595652849684/1422984146585649234).
 
 Got an answer in the meantime and fixed the issue.
+
+## 23 Oct 25
+Found about tools like lsd or exa, improvements upon the `ls` tool; zoxide, a better `cd`; and navi, a terminal command cheatsheet tool. I want to add these to my playbook.
+
+Lets start a list:
+- [ ] lsd/exa
+- [ ] zoxide
+- [ ] navi
+- [ ] nnn
+- [ ] howdoi
+- [ ] 
