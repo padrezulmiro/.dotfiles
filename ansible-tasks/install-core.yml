@@ -54,6 +54,8 @@
 #         - "install"
 #         - "--force"
 
+# TODO(azul) Add some way to install doom
+
 - name: Create home bin directory
   ansible.builtin.file:
       path: "{{ bin_folder }}"
@@ -86,6 +88,10 @@
       src: "{{ zellij_tar_bin_path }}"
       dest: "{{ bin_folder }}"
       remote_src: yes
+
+# TODO(azul) Install zellij
+
+# TODO(azul)
 
 - name: Delete temp directory
   ansible.builtin.file:

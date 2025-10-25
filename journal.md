@@ -106,3 +106,8 @@ Lets start a list:
 - [ ] nnn
 - [ ] howdoi
 - [ ] 
+
+## 24 Oct 25
+Moved fonts to a new folder and migrated the tasks in my ansible playbook to a separate module, with the idea to modularize certain components of the installation. That would allow the user to pick and choose what they want to install.
+
+Now looking at integrating stow to the dotfiles.
