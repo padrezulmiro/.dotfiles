@@ -111,3 +111,13 @@ Lets start a list:
 Moved fonts to a new folder and migrated the tasks in my ansible playbook to a separate module, with the idea to modularize certain components of the installation. That would allow the user to pick and choose what they want to install.
 
 Now looking at integrating stow to the dotfiles.
+
+## 26 Oct 25
+Found how to run stow to suit my needs: `stow -t STOW-TARGET .`; I'm going to add this to my ansible playbook.
+
+Bargh, stow has no way to delete a file that has an analogue in its packages. People are suggesting adopting these files and then restoring them inside the git repo, but that's so ugly... I'm not finding a way to do what I want, as in deleting the duplicates and then stowing the dotfiles. I have two options, either I go with the suggestion or I'll have to write a script just for the occasion.
+
+Seems the suggestion is the recommended way to handle my issue, it's mentioned in stow's docs.
+
+## 27 Oct 25
+Confirmed that the `git restore` technique does work with `git restore stow`.

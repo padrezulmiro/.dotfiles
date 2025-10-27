@@ -18,6 +18,10 @@
       prompt: Do you want to install the core tools? (y/n)
       private: false
 
+    - name: stow_dotfiles
+      prompt: Do you want to stow these dotfiles? (y/n)
+      private: false
+
     - name: install_java
       prompt: Do you want to install dependencies for Java development? (y/n)
       private: false
@@ -36,3 +40,22 @@
     - name: Install core tools
       ansible.builtin.include_tasks: ansible-tasks/install-core.yml
       when: install_core == "y"
+
+    - name: Stow config dotfiles
+      when: stow_dotfiles == "y"
+      ansible.builtin.command:
+        argv:
+          - stow
+          - --adopt
+          - -d
+          - "{{ playbook_dir }}/stow"
+          - -t
+          - "{{ home }}"
+          - .
+
+    - name: Discard files adopted by GNU Stow
+      ansible.builtin.command:
+        argv:
+          - git
+          - restore
+          - stow
