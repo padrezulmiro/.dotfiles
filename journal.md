@@ -121,3 +121,5 @@ Seems the suggestion is the recommended way to handle my issue, it's mentioned i
 
 ## 27 Oct 25
 Confirmed that the `git restore` technique does work with `git restore stow`.
+
+And it's now integrated into ansible, perfect.

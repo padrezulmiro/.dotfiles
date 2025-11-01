@@ -54,8 +54,16 @@
           - .
 
     - name: Discard files adopted by GNU Stow
+      when: stow_dotfiles == "y"
       ansible.builtin.command:
         argv:
           - git
           - restore
           - stow
+
+    - name: Install Go development tools
+      when install_go == "y"
+      become: yes
+      ansible.builtin.apt:
+          name: fd-find
+          state: present
