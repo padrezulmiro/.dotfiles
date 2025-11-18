@@ -103,7 +103,7 @@ Set ~doom-everforest~ as the default doom theme.
 #+begin_src emacs-lisp
 (setq doom-everforest-background "soft")  ; or hard (defaults to soft)
 (setq doom-everforest-light-background "soft") ; or hard (defaults to soft)
-(setq doom-theme 'doom-everforest) ; dark variant
+;; (setq doom-theme 'doom-everforest) ; dark variant
 #+end_src
 
 Changing to an already loaded theme doesn't update them. A hacky solution is to force an update to ~doom-theme~ after ~consult-theme~ finishes execution. This was based on a fix from [[https://github.com/doomemacs/doomemacs/issues/7511#issuecomment-1869710558][this github comment]].
@@ -141,23 +141,21 @@ Doom doesn't come with a day/night theme system by default, one that automatical
   "Azul config's contrast theme"
   :group 'z-config)
 
-(defcustom zcfg-sunrise-time "07:00am"
-  "The time of sunrise"
+(defcustom zcfg-sunrise-time "07:00"
+  "The time of sunrise. Has to be in HH:mmam/pm format - e.g. 07:00"
   :type '(string)
   :group 'z-config)
 
-(defcustom zcfg-sunset-time "06:00pm"
-  "The time of sunset"
+(defcustom zcfg-sunset-time "18:00"
+  "The time of sunset. Has to be in HH:mmam/pm format - e.g. 18:00"
   :type '(string)
   :group 'z-config)
-#+end_src
 
-#+begin_src emacs-lisp
 (defun zcfg--switch-day-night-themes (time)
-  "Switch between day and night themes, e.g. after sunrise this function
-updates the theme to `zcfg-day-theme' whether that's the current theme or
-not. Likewise, for the night theme. TIME is one of two symbols `day' or
-`night'"
+  "Switch between day and night themes.
+E.G. after sunrise this function updates the theme to `zcfg-day-theme' whether
+that's the current theme or not. Likewise, for the night theme. TIME is one of
+two symbols `day' or `night'"
 
   (cond ((eq time 'day)
          (unless (equal doom-theme zcfg-day-theme)
@@ -166,8 +164,26 @@ not. Likewise, for the night theme. TIME is one of two symbols `day' or
          (unless (equal doom-theme zcfg-night-theme)
            (load-theme zcfg-night-theme :no-confirm)))))
 
-(run-at-time zcfg-sunrise-time 86400 #'zcfg--switch-day-night-themes 'day)
-(run-at-time zcfg-sunset-time 86400 #'zcfg--switch-day-night-themes 'night)
+(let*
+    ((parse-fn (lambda (time)
+                 (let* ((time-val (parse-time-string time)))
+                   (+ (* (decoded-time-minute time-val) 60)
+                      (* (decoded-time-hour time-val) 60 60)))))
+     (sunrise-seconds (funcall parse-fn zcfg-sunrise-time))
+     (sunset-seconds (funcall parse-fn zcfg-sunset-time))
+     (current-timeval (decode-time (current-time)))
+     (current-seconds (+ (* (decoded-time-minute current-timeval) 60)
+                      (* (decoded-time-hour current-timeval) 60 60)))
+     (after-sunrise-clause (< sunrise-seconds current-seconds))
+     (after-sunset-clause (< sunset-seconds current-seconds))
+     (between-sunrise-sunset-clause (and after-sunrise-clause
+                                         (not after-sunset-clause))))
+
+(run-at-time t sunrise-seconds #'zcfg--switch-day-night-themes 'day)
+(run-at-time t sunset-seconds #'zcfg--switch-day-night-themes 'night)
+
+(if between-sunrise-sunset-clause
+    (setq doom-theme zcfg-day-theme) (setq doom-theme zcfg-night-theme)))
 #+end_src
 
 ** Buffer appearance
