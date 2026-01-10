@@ -1,0 +1,125 @@
+# Dotfiles journal
+
+## 30 Jan 25
+Started to test the install script on a clean OS.
+
+Note on pexpect's exit status:
+> If you wish to get the exit status of the child you must call the close() method. The exit or signal status of the child will be stored in self.exitstatus or self.signalstatus. 
+> If the child exited normally then exitstatus will store the exit return code and signalstatus will be None. If the child was terminated abnormally with a signal then signalstatus will store the signal value and exitstatus will be None
+```python
+child = pexpect.spawn('some_command')
+child.close()
+print(child.exitstatus, child.signalstatus)
+```
+
+## 6 Feb 25
+I've been concerned over the last few days about packages that go through a separate configuration window. I've then learned that is probably related to an utility named `debconf`; and its behaviour might be configured using `DEBIAN_FRONTEND`.
+
+## 17 Feb 25
+I've decided to emulate a new installation of all the packages I'm looking for and keep detailed notes.
+- zsh asks for a config when starting for the first time. It's kind of irrelevant since we're going to copy a .zshrc file from the repo
+- oh-my-zsh not only needs a special command to install (as in, it doesn't use apt) but it might ask to change the default shell with `Do you want to change your default shell to zsh? [Y/n]`.
+ 
+## 18 Feb 25
+- I'm now going to try to install emacs from apt-get. It asked for a config via `debconf`. Using the `DEBIAN_FRONTEND` envvar didn't prevent the config window to show up, because apparently `sudo` doesn't usually preserve envvars by default. Setting the envvar directly in sudo fixed it!
+- Installing fd-find and ripgrep with apt-get worked fine.
+
+## 22 Feb 25
+Spent last week trying to find out how to sync this code base with virtualbox so I don't need to constantly commit and pull the repo. I worked out I could use a shared folder between WSL and the VM via Windows. 
+But to avoid IOing in Win through WSL (which is likely slow) I used `rsync`. Using `rsync -av --exclude='.git' --exclude='.gitignore' --exclude='.venv' SRC DEST` in WSL and `rsync -rv SRC DEST` in the VM did the trick; but I should probably look into setting up an auto sync mechanism.
+
+## 14 Jul 25
+Finally got back to tinker with a devenv installer. Learned about Ansible recently and it looked like it could fit my needs. It would replace my apt installing code. I'm now looking at how it'd work.
+
+## 16 Jul 25
+You can run `sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" -- unattended` to merely install oh-my-zsh without the installer doing anything else. I could run this in ansible.
+
+## 17 Jul 25
+Got to look into the copy script. Actually there's nothing to see, it's already implemented...
+Added an ansible task to download the oh-my-zsh installer script, so I can run it in a separate task.
+
+## 18 Jul 25
+My ansible play can save the omz installer in path starting from the user's HOME dir.
+`ansible-playbook -K <playbook-path>` to ask for BECOME (sudo) pwd.
+
+## 21 Jul 25
+Added plenty of more packages to the playbook so I'm getting to the point where I'm only missing the most difficult ones, `doom-emacs` and a neovim distro.
+**Memo**: `starship` can be installed using a `-y` flag!
+
+## 31 Jul 25
+I'm testing a manual install of doom-emacs. It asked a y/n question to generate an env file.
+The y/n prompt can be forced by running `doom install --force`
+
+## 4 Aug 25
+Not that happy that Ansible doesn't have a clean way to print a script's stdout in realtime as the script is running. `doom install` takes several minutes to run and I wanted a way for the user to know what's happening in the meantime.
+
+A way to avoid this is to run the installer with `pexpect`.
+
+## 25 Aug 25
+Adding a point to the TODO checklist:
+- [ ] Force an update to the cursor's color when SPC h t. If the theme is already "loaded" it doesn't update the cursor
+
+## 26 Aug 25
+Regarding the fact that Ansible doesn't [write](#4-Aug-25) to stdout whatever the underlying program outputs, I maybe have found a good enough solution: write everything to a log file which can be tailed - simple enough IG.
+
+## 30 Aug 25 
+#emacs-config
+Just recalled again that I wanted to work on some functions that would allow to set up the window layout of workspaces. Something like, press `SPC TAB w` and then `j` for the setup I use more: 1 vertical big window on the left and two split up horizontal windows on the right.
+
+## 23 Sep 25
+#emacs-config
+Haven't checked up for a while, but I've since adopted a literate approach to my emacs config. And then I've added an automatic day/night theme system to it.
+
+Now I'm focusing on a nitpick, that the `consult-imenu` doesn't order hits by order of appearance in the buffer. I'm not sure why this happens.
+
+Looking through the source revealed `consult-imenu--compute`, which is used to cache the imenu hits. Going deeper suggests that `helpful--imenu-index` could be the responsible to create the list of imenu indices.
+
+## 24 Sep 25
+#emacs-config
+I'm reaching the conclusion this might need a solution depending on the LSP server being used in each buffer. `consult-imenu--compute` uses a buffer-local var `imenu-create-index-function`, and LSP served buffers get their imenu-index directly from the server via `lsp-imenu-index-function`, so it might be coming scrambled straight from the server... not good! 
+
+PS: I started noticing this issue on CSS files. There, the local var has the value of OClosure, whatever that is. ChatGPT says it's an "Opaque Closure", but the Elisp docs don't mention anything like that.
+
+OK, it's not a "Opaque Closure" at all. Dumb AI, it's an OPEN closure instead.
+
+## 26 Sep 25
+Might've made a breakthrough. So, the imenu items list for a buffer is saved by `consult-imenu--compute` on a cache variable: `consult-imenu--cache`. That led me to realize that the way this list is built is specified to save the point location of each item. Is there anything stopping me to just simply reorder the list?
+
+Either way, I need to pay attention because the cache might be empty (eg when emacs starts).
+
+I've just confirmed my suspicions, it's empty indeed.
+
+## 30 Sep 25
+I was able to code a TOC version of `consult-imenu` by sorting the items in 'consult-imenu--cache'. The issue now is that my function calls another one whose file is not loaded when Emacs starts up. A possible solution is to simply load it using `load!`. 
+
+Asked about that in [discord](https://discord.com/channels/406534637242810369/505437595652849684/1422984146585649234).
+
+Got an answer in the meantime and fixed the issue.
+
+## 23 Oct 25
+Found about tools like lsd or exa, improvements upon the `ls` tool; zoxide, a better `cd`; and navi, a terminal command cheatsheet tool. I want to add these to my playbook.
+
+Lets start a list:
+- [ ] lsd/exa
+- [ ] zoxide
+- [ ] navi
+- [ ] nnn
+- [ ] howdoi
+- [ ] 
+
+## 24 Oct 25
+Moved fonts to a new folder and migrated the tasks in my ansible playbook to a separate module, with the idea to modularize certain components of the installation. That would allow the user to pick and choose what they want to install.
+
+Now looking at integrating stow to the dotfiles.
+
+## 26 Oct 25
+Found how to run stow to suit my needs: `stow -t STOW-TARGET .`; I'm going to add this to my ansible playbook.
+
+Bargh, stow has no way to delete a file that has an analogue in its packages. People are suggesting adopting these files and then restoring them inside the git repo, but that's so ugly... I'm not finding a way to do what I want, as in deleting the duplicates and then stowing the dotfiles. I have two options, either I go with the suggestion or I'll have to write a script just for the occasion.
+
+Seems the suggestion is the recommended way to handle my issue, it's mentioned in stow's docs.
+
+## 27 Oct 25
+Confirmed that the `git restore` technique does work with `git restore stow`.
+
+And it's now integrated into ansible, perfect.

@@ -1,0 +1,69 @@
+- name: Install development tools
+  hosts: localhost
+  connection: local
+
+  vars:
+      home: "{{ ansible_env.HOME }}"
+      tmp_folder: "{{ home }}/ansible_tmp"
+      bin_folder: "{{ home }}/bin"
+      omz_installer_url: "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
+      omz_installer_path: "{{ tmp_folder }}/omz-install.sh"
+      zellij_tar_bin_url: "https://github.com/zellij-org/zellij/releases/download/v0.42.2/zellij-x86_64-unknown-linux-musl.tar.gz"
+      zellij_tar_bin_path: "{{ tmp_folder }}/zellij.tar.gz"
+      doom_emacs_install_path: "{{ home }}/.config/emacs"
+      doom_bin: "{{ home }}/.config/emacs/bin/doom"
+
+  vars_prompt:
+    - name: install_core
+      prompt: Do you want to install the core tools? (y/n)
+      private: false
+
+    - name: stow_dotfiles
+      prompt: Do you want to stow these dotfiles? (y/n)
+      private: false
+
+    - name: install_java
+      prompt: Do you want to install dependencies for Java development? (y/n)
+      private: false
+
+    - name: install_go
+      prompt: Do you want to install dependencies for Go development? (y/n)
+      private: false
+
+    - name: install_typescript
+      prompt: Do you want to install dependencies for Typescript development? (y/n)
+      private: false
+
+  tasks:
+    # TODO(azul) Need to warn user if install_core var is neither 'y' or 'n'
+
+    - name: Install core tools
+      ansible.builtin.include_tasks: ansible-tasks/install-core.yml
+      when: install_core == "y"
+
+    - name: Stow config dotfiles
+      when: stow_dotfiles == "y"
+      ansible.builtin.command:
+        argv:
+          - stow
+          - --adopt
+          - -d
+          - "{{ playbook_dir }}/stow"
+          - -t
+          - "{{ home }}"
+          - .
+
+    - name: Discard files adopted by GNU Stow
+      when: stow_dotfiles == "y"
+      ansible.builtin.command:
+        argv:
+          - git
+          - restore
+          - stow
+
+    - name: Install Go development tools
+      when install_go == "y"
+      become: yes
+      ansible.builtin.apt:
+          name: golang
+          state: present
