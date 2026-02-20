@@ -3,10 +3,12 @@
 
 # Add important directories to PATH
 export PATH=$PATH:$HOME/bin
-export PATH=$PATH:$HOME/.emacs.d/bin # Doom Emacs utilities (sync, etc...)
+export PATH=$PATH:$HOME/.config/emacs/bin # Doom Emacs utilities (sync, etc...)
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
+
+export JAVA_HOME="/usr/lib/jvm/default-java"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -104,15 +106,20 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
+alias vineflower="java -jar $HOME/lib/vineflower/vineflower.jar"
+
 export COLORTERM=truecolor
 
 # # Created by `pipx` on 2024-11-11 00:54:55
 # export PATH="$PATH:/home/azul/.local/bin"
 #
-# export NVM_DIR="$HOME/.nvm"
-# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-# [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-#
 # # Set custom alias
 # alias emacs="emacsclient -c -a 'emacs' &"
 # alias emacsdaemon="/snap/bin/emacs --daemon"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Created by `pipx` on 2025-12-10 11:45:46
+export PATH="$PATH:/home/fmc/.local/bin"

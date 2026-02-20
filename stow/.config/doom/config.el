@@ -108,7 +108,7 @@ https://github.com/doomemacs/doomemacs/issues/7511#issuecomment-1869710558"
   :type '(string)
   :group 'z-config)
 
-(defcustom zcfg-sunset-time "18:00"
+(defcustom zcfg-sunset-time "17:00"
   "The time of sunset. Has to be in HH:mmam/pm format - e.g. 18:00"
   :type '(string)
   :group 'z-config)
@@ -141,11 +141,15 @@ two symbols `day' or `night'"
      (between-sunrise-sunset-clause (and after-sunrise-clause
                                          (not after-sunset-clause))))
 
-(run-at-time t sunrise-seconds #'zcfg--switch-day-night-themes 'day)
-(run-at-time t sunset-seconds #'zcfg--switch-day-night-themes 'night)
+;; (run-at-time t sunrise-seconds #'zcfg--switch-day-night-themes 'day)
+;; (run-at-time t sunset-seconds #'zcfg--switch-day-night-themes 'night)
 
 (if between-sunrise-sunset-clause
     (setq doom-theme zcfg-day-theme) (setq doom-theme zcfg-night-theme)))
+
+
+(run-at-time zcfg-sunrise-time 86400 #'zcfg--switch-day-night-themes 'day)
+(run-at-time zcfg-sunset-time 86400 #'zcfg--switch-day-night-themes 'night)
 
 (setq display-line-numbers-type 'relative)
 
@@ -185,6 +189,26 @@ The activation is achieved by checking if the given directory is named \".venv\"
         (setq-local lsp-pylsp-plugins-jedi-environment venv-path)
         (message "azul config: Activating python venv in %s" venv-path))
       (message "Didn't find a python venv directory!"))))
+
+(after! poetry
+  (defadvice! zcfg--poetry-find-project-root-a (oldfn &rest args)
+    "Advice for finding the root of a poetry project.
+
+The original `poetry-find-project-root' currently has a bug where it expects
+the pyproject.toml file to contain a line with [tools.poetry]. That practice
+is being abandoned in favor of different structure, which is being accounted
+by this advice."
+    :around #'poetry-find-project-root
+    (or poetry-project-root
+        (when-let* ((root (locate-dominating-file default-directory
+                                                  "pyproject.toml"))
+                    (pyproject-contents
+                     (with-temp-buffer (insert-file-contents-literally
+                                        (concat (file-name-as-directory root)
+                                                "pyproject.toml"))
+                                       (buffer-string)))
+                    (_ (string-match "^\\[project\\]" pyproject-contents)))
+          (setq poetry-project-root root)))))
 
 (defun zcfg/consult-imenu-toc ()
   "Select item from flattened and sorted `imenu' with preview.

@@ -62,8 +62,17 @@
           - stow
 
     - name: Install Go development tools
-      when install_go == "y"
+      when: install_go == "y"
       become: yes
       ansible.builtin.apt:
           name: golang
+          state: present
+
+    - name: Install Java development tools
+      when: install_java == "y"
+      become: yes
+      ansible.builtin.apt:
+          name:
+            - default-jre
+            - default-jdk
           state: present
