@@ -2,6 +2,7 @@
 
 import click
 import os
+import zipfile
 from time import time_ns
 from tempfile import mkdtemp
 
@@ -23,15 +24,15 @@ def root_cmd(source: str, destination: str):
     # Decompile class files
 
     src_ext = os.path.splitext(source)[1]
-    if src_ext != ".jar" and src_ext != ".class":
-        raise click.BadArgumentUsage("SOURCE has to be a JAR or CLASS file.")
+    if src_ext != ".jar":
+        raise click.BadArgumentUsage("SOURCE has to be a JAR")
 
-    tdir_abspath = mkdtemp(dir=".")
+    # tdir_abspath = mkdtemp(dir=".")
+    with zipfile.ZipFile(source, mode="r") as jarfile:
+        for name in jarfile.namelist():
+            is_valid_jar_member()
 
-def unpack_jar():
-    pass
-
-def run_vineflower():
+def is_valid_jar_member():
     pass
 
 
