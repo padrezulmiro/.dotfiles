@@ -29,11 +29,33 @@ def root_cmd(source: str, destination: str):
 
     # tdir_abspath = mkdtemp(dir=".")
     with zipfile.ZipFile(source, mode="r") as jarfile:
-        for name in jarfile.namelist():
-            is_valid_jar_member()
+        jar_namelist = jarfile.namelist()
+        for name in jar_namelist:
+            valid = is_valid_jar_member(name, jar_namelist)
+            click.echo(f"Should {name} be extracted: {valid}")
 
-def is_valid_jar_member():
-    pass
+
+def is_valid_jar_member(target_member: str, jar_members: list[str]) -> bool:
+    """Determine if a jar member is valid, and should be extracted."""
+    target_root, target_ext = os.path.splitext(target_member)
+    has_class_ext = target_ext == ".class"
+    has_java_ext = target_ext == ".java"
+    is_cl_class_member = target_member.endswith("_cl.class")
+
+    java_equiv_exists = False
+    if has_class_ext:
+        java_equiv_name = target_root + ".java"
+        java_equiv_exists = java_equiv_name in jar_members
+
+    is_valid = (
+        has_java_ext or (
+            not is_cl_class_member and
+            has_class_ext and
+            not java_equiv_exists
+        )
+    )
+
+    return is_valid
 
 
 if __name__ == '__main__':
