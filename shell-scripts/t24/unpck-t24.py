@@ -27,12 +27,15 @@ def root_cmd(source: str, destination: str):
     if src_ext != ".jar":
         raise click.BadArgumentUsage("SOURCE has to be a JAR")
 
-    # tdir_abspath = mkdtemp(dir=".")
+    tdir_abspath = mkdtemp(dir=".")
+
     with zipfile.ZipFile(source, mode="r") as jarfile:
         jar_namelist = jarfile.namelist()
         for name in jar_namelist:
-            valid = is_valid_jar_member(name, jar_namelist)
-            click.echo(f"Should {name} be extracted: {valid}")
+            valid_jar = is_valid_jar_member(name, jar_namelist)
+            click.echo(f"Should {name} be extracted: {valid_jar}")
+            if valid_jar:
+                jarfile.extract(name, tdir_abspath)
 
 
 def is_valid_jar_member(target_member: str, jar_members: list[str]) -> bool:
